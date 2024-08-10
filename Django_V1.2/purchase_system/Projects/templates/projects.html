@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <label for="name">Project Name:</label>
+    <input type="text" id="name" name="name"><br><br>
+    <label for="code">Project Code:</label>
+    <input type="text" id="code" name="code"><br><br>
+    <label for="location">Project Location:</label>
+    <input type="text" id="location" name="location"><br><br>
+    <label for="consultant">Project Consultant:</label>
+    <input type="text" id="consultant" name="consultant"><br><br>
+    <label for="stage">Project Stage:</label>
+    <input type="text" id="stage" name="stage"><br><br>
+    <input type="submit" value="Submit">
+</form>
+{% endblock content %}

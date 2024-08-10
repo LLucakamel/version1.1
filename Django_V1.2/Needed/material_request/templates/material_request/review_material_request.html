@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Review Material Request</h2>
+    <div class="review-section">
+        <h3>Request Details</h3>
+        <p><strong>Request Date:</strong> {{ material_request.request_date }}</p>
+        <p><strong>Supply Date:</strong> {{ material_request.supply_date }}</p>
+        <p><strong>Material Request NO:</strong> {{ material_request.material_request_number }}</p>
+        <p><strong>Vendor Name:</strong> {{ material_request.vendor_name }}</p>
+        <p><strong>Project Name:</strong> {{ material_request.project.name }}</p>
+        <p><strong>Project Code:</strong> {{ material_request.project.code }}</p>
+        <p><strong>Project Location:</strong> {{ material_request.project.location }}</p>
+        <p><strong>Project Consultant:</strong> {{ material_request.project.consultant }}</p>
+        <p><strong>Project Stage:</strong> {{ material_request.project_stage }}</p>
+        <p><strong>Product Name:</strong> {{ material_request.product_name }}</p>
+        <p><strong>Product Code:</strong> {{ material_request.product_code }}</p>
+        <p><strong>Quantity:</strong> {{ material_request.quantity }}</p>
+        <p><strong>Unit:</strong> {{ material_request.unit }}</p>
+    </div>
+    <a href="{% url 'edit_material_request' material_request.id %}"><button>Edit</button></a>
+    <a href="{% url 'material_request' %}"><button>Back to List</button></a>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+from django.db import models
+
+class MaterialRequest(models.Model):
+    request_date = models.DateTimeField()
+    supply_date = models.DateField()
+    vendor_name = models.CharField(max_length=100)
+    lpo_no = models.CharField(max_length=50)
+    project_name = models.CharField(max_length=100)
+    project_code = models.CharField(max_length=50)
+    project_location = models.CharField(max_length=100)
+    project_consultant = models.CharField(max_length=100)
+    project_stage = models.CharField(max_length=50)
+    requester_signature = models.CharField(max_length=50)
+    supplier_signature = models.CharField(max_length=50)
+    store_keeper_signature = models.CharField(max_length=50)
+    other_signature = models.CharField(max_length=50)
+    requester_date = models.DateTimeField()
+    supplier_date = models.DateField()
+    store_keeper_date = models.DateField()
+    others_date = models.DateField()
+    name = models.CharField(max_length=100)
+    material_request_no = models.CharField(max_length=50)
+
+class MaterialRequestItem(models.Model):
+    material_request = models.ForeignKey(MaterialRequest, on_delete=models.CASCADE, related_name='items')
+    item_code = models.CharField(max_length=50)
+    item_name = models.CharField(max_length=100)
+    pic = models.ImageField(upload_to='material_request_pics', blank=True, null=True)
+    qty = models.IntegerField()
+    item_unit = models.CharField(max_length=50)
+    remark = models.TextField(blank=True)

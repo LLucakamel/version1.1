@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Product List{% endblock %}
+
+
+{% block content %} 
+    <h2>{{ form.instance.id|default:"Add New Product" }}</h2>
+    <div class="container">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-row"> <!-- Start of first row -->
+                {% for field in form %}
+                <div class="form-col"> <!-- Each field in a column -->
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% if forloop.counter|divisibleby:2 and not forloop.last %}
+                </div><div class="form-row"> <!-- End current row and start a new row every 2 fields -->
+                {% endif %}
+                {% endfor %}
+            </div>
+             <!-- End of last row -->
+            <button type="submit" class="btn btn-orange" style="padding: 5px 12px; color:white; font-size: 16px; font-weight: bold;" >Save</button>
+        </form>
+        <br>
+        <a href="{% url 'product_list' %}" class="btn btn-red" style="padding: 3px 7px; color:white; font-size: 16px; font-weight: bold;">Return to Product List</a>
+    </div>
+{% endblock %} 

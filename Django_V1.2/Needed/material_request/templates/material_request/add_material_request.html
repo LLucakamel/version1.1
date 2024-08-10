@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/add_material_request.css' %}">
+
+
+<h2 class="title">Material Request</h2>
+<div class="container"> 
+    <div class="row">
+        <div class="col">
+            <label for="request-date">Request Date</label>
+            <input type="datetime-local" id="request-date" name="request-date">
+        </div>
+        <div class="col">
+            <label for="supply-date">Supply Date</label>
+            <input type="date" id="supply-date" name="supply-date" min="{{ today | date:'Y-m-d' }}">
+        </div>
+    </div>
+    <section class="order-details">
+        <div class="row">
+            <div class="col">
+                <label for="lpo-no">Material Request NO</label>
+                <input type="text" id="lpo-no" name="lpo-no" value="{{ material_request_number }}" readonly>
+            </div>
+        </div>
+        <div class="col">
+            <label for="vendor-name"> Name</label>
+            <input type="text" id="vendor-name" name="vendor-name">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <label for="id_project">Project Name</label>
+            {{ form.project }}
+        </div>
+        <div class="col">
+            <label for="id_project_code">Project Code</label>
+            <input type="text" id="id_project_code" name="project_code" readonly>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <label for="id_project_location">Project Location</label>
+            <input type="text" id="id_project_location" name="project_location" readonly>
+        </div>
+        <div class="col">
+            <label for="id_project_consultant">Project Consultant</label>
+            <input type="text" id="id_project_consultant" name="project_consultant" readonly>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <label for="id_project_stage">Project Stage</label>
+            <select id="id_project_stage" name="project_stage" readonly>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <label for="product-name">Product Name</label>
+            <input type="text" id="product-name" placeholder="Product Name">
+        </div>
+        <div class="col">
+            <label for="product-code">Product Code</label>
+            <input type="text" id="product-code" name="product-code" class="form-control" placeholder="Product Code" >
+        </div>
+        <div class="col">
+            <label for="product-quantity">Quantity</label>
+            <input type="number" id="product-quantity" name="product-quantity" class="form-control">
+        </div>
+        <div class="col">
+            <label for="product-unit">Unit</label>
+            <select id="unit" name="unit" readonly>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option> 
+            </select>
+        </div>
+    </div>
+</section>
+    
+
+<div> 
+<form action="#" method="post">
+    {% csrf_token %}
+    <!-- Include all necessary form fields here -->
+    <button type="submit" class="submit-btn" id="submit-btn">Save and Send</button>
+</form>
+    <a href="Material-Request.html"><button type="button" class="cancel-btn" id="cancel-btn">Cancel</button></a>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="{% static 'js/add_material_request.js' %}"></script>
+
+<div data-add-material-request-url="{% url 'add_material_request' %}" id="some-element"></div>
+
+{% endblock  %}
