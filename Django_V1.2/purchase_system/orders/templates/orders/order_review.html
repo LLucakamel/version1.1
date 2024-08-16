@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}Order Review{% endblock %}
+
+{% block content %}
+
+<style>
+
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        background-color: #e9e9e9; /* Slightly off-white for items */
+        border: 1px solid #d1d1d1; /* Light grey border */
+        border-radius: 0px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        flex: 1;
+        margin-right: 10px;
+    }
+
+    .info-item:last-child {
+        margin-right: 0;
+    }
+
+    .info-item strong {
+        color: #121113; 
+        flex-basis: 30%;
+        font-weight: bold; /* Make labels bold */
+        text-align: left; /* Align text to the left within the space */
+    }
+
+    .info-item span {
+        flex-basis: 70%;
+        text-align: right; /* Center-align text within the span */
+        color: #656466; /* Black color for content */
+        font-weight: bold; /* Set font weight to normal */
+        background-color: #f2f2f2; /* Light grey background for contrast */
+        padding: 5px; /* Add padding for better spacing */
+        border-radius: 4px; /* Rounded corners for aesthetic */
+        display: inline-block; /* Ensure the background and padding are applied correctly */
+        width: calc(100% - 10px); /* Adjust width to fit within parent, considering padding */
+        margin-left: 10px; /* Space between label and content */
+    }
+
+    .info-row {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+    }
+</style>
+
+<h2>Order Review - Order ID: {{ order.id }} </h2> 
+<div class="container">
+    <div>
+        <div class="info-item" style="margin:0;"><strong>Requester:</strong> <span>{{ order.requester.username }}</span></div>
+        <div class="info-item" style="margin:10px 0"><strong>Order Name:</strong> <span>{{ order.order_name }}</span></div>
+        <div class="info-item" style="margin:10px 0"><strong>Request Date:</strong> <span>{{ order.request_date }}</span></div>
+        <div class="info-item" style="margin:10px 0"><strong>Supply Date:</strong> <span>{{ order.supply_date }}</span></div>
+    <div class="info-row" style="margin:25px 0;">
+        <div class="info-item"><strong>Project Name:</strong> <span>{{ order.project_name }}</span></div>
+        <div class="info-item"><strong>Project Code:</strong> <span>{{ order.project_code }}</span></div>
+        <div class="info-item"><strong>Project Consultant:</strong> <span>{{ order.project_consultant }}</span></div>
+        <div class="info-item"><strong>Project Location:</strong> <span>{{ order.project_location }}</span></div>
+    </div>
+</div>
+    <form>
+        {% if products %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>SR.NO.</th>
+                    <th>Item Code</th>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Pic</th>
+                    <th>Unit</th>
+                    <th>Remark</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ product.code }}</td>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.quantity }}</td>
+                    <td>{{ product.pic }}</td>
+                    <td>{{ product.unit }}</td>
+                    <td>{{ product.remark }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No products found.</p>
+        {% endif %}
+    </form>
+    <br>
+    <div class="remark-div" style="margin-bottom:20px;">
+        <!-- Optional: Add any remarks or additional information here -->
+        <textarea name="remarks" rows="4" cols="50" style="resize: none;"></textarea>
+    </div>
+    <a href="{% url 'order_approve' order.id %}" class="btn btn-green">Approve</a>
+    <a href="{% url 'order_disapprove' order.id %}" class="btn btn-red">Disapprove</a>
+    <a href="{% url 'order_update' order.id %}" class="btn btn-white">Edit</a>
+    
+    <style>
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1050;
+            display: none; /* Hidden by default */
+        }
+
+        .modal.active {
+            display: block; /* Show the modal when active */
+        }
+
+        .modal-header, .modal-footer {
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
+        .modal-body {
+            padding: 10px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #ccc;
+        }
+
+        .close {
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+
+    </style>
+
+    <!-- Delete Button -->
+    <a href="#" class="btn btn-red" onclick="toggleModal()">Delete</a>
+
+    <!-- Modal -->
+    <div class="modal" id="deleteConfirmModal">
+        <div class="modal-header">
+            <h3 class="modal-title">Delete Confirm</h3>
+            <span class="close" onclick="toggleModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <strong> Are you sure that you want to delete this order? </strong>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-white" onclick="toggleModal()">Cancel</button>
+            <button class="btn btn-red" onclick="deleteOrderAndRedirect()">Delete</button>
+        </div>
+    </div>
+
+    {% comment %} <script>
+        function toggleModal() {
+            var modal = document.getElementById('deleteConfirmModal');
+            modal.classList.toggle('active');
+        }
+
+        function deleteOrderAndRedirect() {
+            var orderId = "{{ order.id }}";
+            console.log("Order ID:", orderId);
+
+            if (!orderId) {
+                console.error("Invalid order ID");
+                alert('Order ID is invalid. Cannot delete the order.');
+                return;
+            }
+
+            // Generate URL using orderId
+            var url = `{% url 'order_delete' orderId %}`;
+            console.log("URL:", url);  // Debug the final URL
+
+            fetch(url)
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '{% url 'order_list' %}';
+                } else {
+                    alert('Failed to delete the order.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script> {% endcomment %}
+</div>
+{% endblock %}

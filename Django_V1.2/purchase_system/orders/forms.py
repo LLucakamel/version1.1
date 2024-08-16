@@ -7,16 +7,20 @@ from django.db.models import Q
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['product_name', 'product_code', 'quantity', 'due_date', 'project_name', 'project_code', 'order_name', 'project_phase', 'project_consultant', 'project_location', 'supplier']
+        exclude = ['requester']  # Exclude the requester field from the form
+        fields = '__all__'
         widgets = {
-            'due_date': forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().isoformat()}),
+            'request_date': forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().isoformat()}),
+            'supply_date': forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().isoformat()}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product_name'].widget.attrs.update({'class': 'autocomplete'})
         self.fields['product_code'].widget.attrs.update({'class': 'autocomplete'})
-        self.fields['supplier'].widget.attrs.update({'class': 'autocomplete'})
+        # Set the default value for request_date to today's date if it's a new form
+        if not self.instance.pk:  # Checking if the instance is not saved (i.e., it's new)
+            self.fields['request_date'].initial = timezone.now().date()
 
     def clean(self):
         cleaned_data = super().clean()

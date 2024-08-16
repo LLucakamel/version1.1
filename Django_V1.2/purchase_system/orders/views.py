@@ -7,20 +7,28 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 import datetime
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required
+from Projects.models import Project  # Ensure the 'projects' app is included in your Django settings
 
 class OrderForm(ModelForm):
     class Meta:
         model = Order
-        fields = ['product_name', 'product_code', 'quantity', 'due_date', 'project_name', 'project_code', 'order_name', 'project_phase', 'project_consultant', 'project_location']
+        fields = ['product_name', 'product_code', 'quantity', 'project_name', 'project_code', 'order_name', 'project_phase', 'project_consultant', 'project_location', 'request_date', 'supply_date']
         widgets = {
-            'due_date': forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().isoformat()}),
+            'request_date': forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().isoformat()}),
+            'supply_date': forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().isoformat()}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product_name'].widget.attrs.update({'class': 'autocomplete'})
         self.fields['product_code'].widget.attrs.update({'class': 'autocomplete'})
+        self.fields['project_name'].widget.attrs.update({'class': 'autocomplete'})
+        self.fields['project_code'].widget.attrs.update({'class': 'autocomplete'})
+        # Set the default value for request_date to today's date if it's a new form
+        if not self.instance.pk:  # Checking if the instance is not saved (i.e., it's new)
+            self.fields['request_date'].initial = timezone.now().date()
 
     def clean(self):
         cleaned_data = super().clean()
@@ -34,13 +42,6 @@ class OrderForm(ModelForm):
             raise ValidationError("Product not found. Please enter a valid product name and code.")
         return cleaned_data
 
-    def clean_due_date(self):
-        due_date = self.cleaned_data.get('due_date')
-        today = timezone.now().date()
-        if due_date and due_date < today:
-            raise ValidationError("Due date cannot be in the past.")
-        return due_date
-    
     def clean_quantity(self):
         product_name = self.cleaned_data.get('product_name')
         product_code = self.cleaned_data.get('product_code')
@@ -53,8 +54,15 @@ class OrderForm(ModelForm):
             pass  # This will be handled in the clean method
         return quantity
     
+    def clean_supply_date(self):
+        supply_date = self.cleaned_data.get('supply_date')
+        today = timezone.now().date()
+        if supply_date and supply_date < today:
+            raise ValidationError("Supply date cannot be in the past.")
+        return supply_date
+    
 def order_list(request):
-    orders = Order.objects.all().order_by('-order_date')
+    orders = Order.objects.all().order_by('-request_date')
     print(f"Total orders in database: {Order.objects.count()}")
     print(f"Orders being sent to template: {len(orders)}")
     return render(request, 'orders/orders_list.html', {'orders': orders})
@@ -64,23 +72,21 @@ def order_create(request):
         form = OrderForm(request.POST)
         if form.is_valid():
             order = form.save(commit=False)
-            order.order_date = timezone.now()
-            product_name = form.cleaned_data['product_name']
-            product_code = form.cleaned_data['product_code']
-            try:
-                product = Product.objects.get(name=product_name, code=product_code)
-                if order.quantity <= product.stock:
-                    product.stock -= order.quantity
-                    product.save()
-                    order.save()
-                    return redirect('order_list')
-                else:
-                    form.add_error('quantity', f"Only {product.stock} available. Cannot order more than that.")
-            except Product.DoesNotExist:
-                form.add_error(None, "Product not found. Please enter a valid product name and code.")
+            order.requester = request.user  # Set the current user as the requester
+            order.save()
+            # Assuming you have product fields in your form
+            product_name = request.POST.get('product_name')
+            product_code = request.POST.get('product_code')
+            quantity = request.POST.get('quantity')
+            # Create or get product instance
+            product, created = Product.objects.get_or_create(name=product_name, defaults={'code': product_code, 'quantity': quantity})
+            order.products.add(product)
+            return redirect('order_review', order_id=order.id)
+        else:
+            return render(request, 'orders/orders_form.html', {'form': form})
     else:
         form = OrderForm(initial={'due_date': timezone.now().date()})
-    return render(request, 'orders/orders_form.html', {'form': form, 'range_1_to_10': range(1, 11)})
+        return render(request, 'orders/orders_form.html', {'form': form, 'range_1_to_10': range(1, 11)})
 
 def order_update(request, id):
     order = get_object_or_404(Order, id=id)
@@ -93,12 +99,6 @@ def order_update(request, id):
         form = OrderForm(instance=order)
     return render(request, 'orders/orders_form.html', {'form': form, 'range_1_to_10': range(1, 11)})
 
-def order_delete(request, id):
-    order = get_object_or_404(Order, id=id)
-    if request.method == 'POST':
-        order.delete()
-        return redirect('order_list')
-    return render(request, 'orders/orders_confirm_delete.html', {'object': order})
 
 def order_approve(request, id):
     order = get_object_or_404(Order, id=id)
@@ -121,3 +121,42 @@ def product_search(request):
         products = Product.objects.filter(code__icontains=term)[:10]
     results = [{'label': f"{p.name} ({p.code})", 'value': p.id, 'name': p.name, 'code': p.code} for p in products]
     return JsonResponse(results, safe=False)
+
+def project_search(request):
+    term = request.GET.get('term', '')
+    projects = Project.objects.filter(name__icontains=term)
+    project_list = [
+        {
+            'name': project.name,
+            'code': project.code,
+            'id': project.id,
+            'consultant': project.consultant if project.consultant else 'No consultant',
+            'location': project.location if project.location else 'No location',
+        }
+        for project in projects
+    ]
+    return JsonResponse(project_list, safe=False)
+
+def order_review(request, order_id):
+    order = get_object_or_404(Order, pk=order_id)
+    products = order.products.all()
+    return render(request, 'orders/order_review.html', {'order': order, 'products': products})
+
+@login_required
+def order_form(request, order_id=None):
+    order = Order.objects.get(id=order_id) if order_id else None
+    context = {
+        'order': order,
+        'requester_username': request.user.username  # Pass the current user's username to the template
+    }
+    return render(request, 'orders/order_form.html', context)
+
+def delete_order(request, order_id):
+    Order.objects.filter(id=order_id).delete()
+    return redirect('order_list')
+
+def project_search_view(request):
+    # منطق البحث عن المشروع
+    data = {}  # تعريف المتغ data كقاموس فارغ
+    # يمكنك إضافة بيانات إلى القاموس هنا بناءً على منطق البحث
+    return JsonResponse(data)

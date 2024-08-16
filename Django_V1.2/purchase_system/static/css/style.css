@@ -483,11 +483,11 @@ body {
   }
 
   table th {
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #969696;
     padding: 12px;
     text-align: left;
     font-weight: bolder;
-    background-color: #f2f2f2;
+    background-color: #cccccc;
   }
 
   table td {
@@ -512,80 +512,38 @@ body {
 
   /* Button Styling */
   .btn {
-    padding: 5px 10px;
-    color: #424242;
-    background-color: #007BFF;
+    padding: 10px 15px;
+    color: #413838;
+    background-color: #bebebe;
     border: none;
     border-radius: 0px;
     text-decoration: none;
     transition: background-color 0.3s ease;
-  }
-
-  .btn:hover {
-    background-color: #0056b3;
-  }
-
-  .btn-green {
-    background-color: #1f7934; /* Dark green background */
-    color: #FFFFFF; /* White text */
-    padding: 5px 10px;
     font-size: 16px; /* Larger font size */
     border-radius: 0px; /* Rounded corners */
     border: none; /* No border */
     text-decoration: none; /* No underline */
     transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-    font-size: 16px; /* Larger font size for better readability */
     font-weight: bold; 
   }
-
-.btn-orange {
-    background-color: #ee6d22; /* Slightly darker grey on hover */
-    color: #FFFFFF; /* White text */
-    padding: 5px 10px;
-    font-size: 16px; /* Larger font size */
-    border-radius: 0px; /* Rounded corners */
-    border: none; /* No border */
-    text-decoration: none; /* No underline */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-    font-size: 16px; /* Larger font size for better readability */
-    font-weight: bold; 
-  }
-
-  .btn-red {
-    background-color: #961515; /* Slightly darker grey on hover */
-    color: #FFFFFF; /* White text */
-    padding: 5px 10px;
-    font-size: 16px; /* Larger font size */
-    border-radius: 0px; /* Rounded corners */
-    border: none; /* No border */
-    text-decoration: none; /* No underline */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-    font-size: 16px; /* Larger font size for better readability */
-    font-weight: bold; 
-  }
-
 .btn-red:hover {
     background-color: #802020; /* Slightly darker grey on hover */
+    color: #ececec;
 }
 .btn-orange:hover {
-  background-color: #d36323; /* Slightly darker grey on hover */
+    color: #ececec;
+    background-color: #d36323; /* Slightly darker grey on hover */
 }
 .btn-green:hover {
+    color: #ececec;
     background-color: #18642a; /* Slightly darker green when hovered */
 }
-
-.btn-white {
-    background-color: #bebebe;
-    font-size: 16px; /* Larger font size for better readability */
-    font-weight: bold; 
-}
-
 .btn-white:hover {
     background-color: #969696;
 }
 
 
-input, select {
+input, select,textarea {
     width: calc(100% - -100px); /* تقليل العرض لتناسب الهوامش */
     padding: 12px; /* زيادة التبطين لتحسين التفاعل باللمس */
     margin: 4px 5px; /* تعديل الهامش للتباعد بين العناصر */
@@ -594,17 +552,18 @@ input, select {
     border-radius: 0px; /* زوايا مستديرة */
     box-sizing: border-box; /* يشمل التبطين والحدود في عرض العنصر */ /* Full width of the column */
   }
-input[type="text"]:active {
+input[type="text"]:active,textarea:active {
   border-color: #f37920; /* تغيير لون الحدود إلى البرتقالي */
   box-shadow: 0 0 8px #f37920; /* إضافة ظل باللون البرتقالي */
   transform: scale(0.98); /* تقليص حجم العنصر قليلاً لإضافة تأثير عند الضغط */
   transition: transform 0.2s ease, box-shadow 0.2s ease; /* إضافة حركة انتقالية للتحويل والظل */
 }
 input:focus,
-select:focus
+select:focus,
+textarea:focus
 {
-    border-color: #fa8787;
-    box-shadow: 0 0 5px rgba(250, 135, 135, 0.5);
+    border-color: #10abb6;
+    box-shadow: 0 0 15px rgba(0, 174, 255, 0.5);
     outline: none;
 }
 label {
@@ -626,39 +585,6 @@ input, select, textarea {
     margin-right: 10px; /* هامش على اليمين للفصل بين المدخلات والزر */
 }
 
-.search-button {
-  padding: 10px 20px; /* توحيد التبطين لتحسين الراحة */
-  background-color: #f37920; /* تعيين لون الخلفية الجديد */
-  color: white; /* تعيين لون النص إلى الأبيض */
-  border: none; /* إزالة الحدود */
-  border-radius: 0px; /* توحيد الزوايا المستديرة */
-  cursor: pointer; /* تعيين مؤشر الفأرة */
-  transition: background-color 0.3s ease; /* إضافة تأثير انتقالي للون الخلفية */
-  font-size: 16px; /* Larger font size for better readability */
-  font-weight: bold; 
-}
-
-.search-button:hover {
-  background-color: #d86c1f; /* تغيير لون الخلفية عند التمرير للون أغمق قليلاً */
-}
-
-.search-button1 {
-  position: relative;
-  top: 10.5px;
-  padding: 10px 20px; /* توحيد التبطين لتحسين الراحة */
-  background-color: #f37920; /* تعيين لون الخلفية الجديد */
-  color: white; /* تعيين لون النص إلى الأبيض */
-  border: none; /* إزالة الحدود */
-  border-radius: 0px; /* توحيد الزوايا المستديرة */
-  cursor: pointer; /* تعيين مؤشر الفأرة */
-  transition: background-color 0.3s ease; /* إضافة تأثير انتقالي للون الخلفية */
-  font-size: 16px; /* Larger font size for better readability */
-  font-weight: bold; 
-}
-
-.search-button1:hover {
-  background-color: #d86c1f; /* تغيير لون الخلفية عند التمرير للون أغمق قليلاً */
-}
 
 .form-row {
   display: flex;
@@ -699,3 +625,78 @@ input, select, textarea {
 .btn {
   margin-right: 10px; /* Space between buttons */
 }
+
+.btn:focus
+{
+  border-color: #10abb6;
+  box-shadow: 0 0 15px rgba(0, 174, 255, 0.5);
+  outline: none;
+}
+
+
+/* Import/Export Form Styling */
+.import-export-form {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  margin-top: 20px;
+  border: 1px solid;
+  border-color: #f37920; /* تغيير لون الحدود إلى البرتقالي */
+  box-shadow: 0 0 8px #f37920; 
+  background-color: #ebebeb;
+  transition: transform 0.2s ease, box-shadow 0.2s ease; 
+}
+
+.file-input {
+  border: 1px solid #ddd;
+  padding: 8px;
+  margin-right: 10px;
+}
+
+.import-btn, .export-btn {
+  margin: 0 5px;
+  padding: 8px 15px;
+  font-size: 16px;
+  text-align: center;
+  border-radius: 0px;
+}
+
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .import-export-form {
+      flex-direction: column;
+      align-items: stretch;
+  }
+
+  .file-input, .import-btn, .export-btn {
+      width: 100%;
+      margin-top: 10px;
+  }
+
+  .import-btn, .export-btn {
+      margin-bottom: 10px;
+  }
+}
+
+
+/* .modal-message {
+  position: fixed;
+  top: 60px; 
+  right: 20px;
+  z-index: 1050;
+  padding: 15px;
+  margin: 0;
+  background-color: #b1c7b6; 
+  color: #103f1b;
+  border-radius: 0px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  display: none;
+}
+
+.modal-success {
+  background-color: #d4edda;
+  color: #155724; 
+} */

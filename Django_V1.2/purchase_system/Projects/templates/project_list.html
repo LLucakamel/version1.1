@@ -1,37 +1,136 @@
 {% extends 'base.html' %}
 {% block title %}Project List{% endblock %}
 
+
 {% block content %}
 <h2>Projects List</h2>
 <div class="container">
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Code</th>
-            <th>Location</th>
-            <th>Consultant</th>
-            <th>Stage</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for project in projects %}
-        <tr>
-            <td>{{ project.name }}</td>
-            <td>{{ project.code }}</td>
-            <td>{{ project.location }}</td>
-            <td>{{ project.consultant }}</td>
-            <td>{{ project.stage }}</td>
-            <td>
-                <a href="{% url 'edit-project' project.id %}" class="btn btn-white">Edit</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<br>
-<a href="{% url 'add-project' %}" class="btn btn-green">Add New Project</a>
+    <div style="margin: 20px 0; margin-bottom:10px 0;">
+    <!-- Add New Project Button -->
+    <a href="{% url 'add-project' %}" class="btn btn-green">Add New Project</a>
+    <!-- Import and Export Buttons -->
+    </div>
+    <form action="{% url 'import-projects' %}" method="post" enctype="multipart/form-data" class="import-export-form">
+        {% csrf_token %}
+        <input type="file" name="project_file" required class="file-input" >
+        <button type="submit" class="btn btn-orange import-btn">Import Projects</button>
+        <a href="{% url 'export-projects' %}" class="btn btn-white export-btn">Export Projects</a>
+    </form>
+    <br>
+    <br>
+    <br>
+
+    <!-- Search Form -->
+    <div class="search-bar">
+        <form action="javascript:void(0);" method="GET" style="display: flex; justify-content: space-between; align-items: center; padding: 10px;">
+            <div style="flex: 1; padding-right: 10px;">
+                <label for="project_name">Project Name:</label>
+                <input type="text" id="project_name" name="project_name" placeholder="Search by Project Name" style="width: 100%; padding: 12px;" required onkeyup="searchProjects()">
+            </div>
+            <div style="flex: 1; padding-right: 10px;">
+                <label for="project_code">Project Code:</label>
+                <input type="text" id="project_code" name="project_code" placeholder="Search by Project Code" style="width: 100%; padding: 12px;" required onkeyup="searchProjects()">
+            </div>
+            <div style="flex: 1; padding-right: 10px;">
+                <label for="consultant">Consultant:</label>
+                <input type="text" id="consultant" name="consultant" placeholder="Search by Consultant" style="width: 100%; padding: 12px;" required onkeyup="searchProjects()">
+            </div>
+            <div style="flex: 1; padding-right: 10px;">
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location" placeholder="Search by Location" style="width: 100%; padding: 12px;" required onkeyup="searchProjects()">
+            </div>
+        </form>
+    </div>
+    <br>
+    <table class="table" style="margin: 30px 0;">
+        <thead style="margin: 5px;">
+            <tr>
+                <th>Project Name</th>
+                <th>Project Code</th>
+                <th>Project Consultant</th>
+                <th>Project Location</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody style="margin: 5px;">
+            {% for project in projects %}
+            <tr class="project-item" style="margin: 5px;">
+                <td>{{ project.name }}</td>
+                <td>{{ project.code }}</td>
+                <td>
+                    {% if project.consultant %}
+                        {{ project.consultant }}
+                    {% else %}
+                        No consultant
+                    {% endif %}
+                </td>
+                <td>
+                    {% if project.location %}
+                        {{ project.location }}
+                    {% else %}
+                        No location
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'edit-project' project.id %}" class="btn btn-white" style="margin: 5px;">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No projects found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const projectNameInput = document.getElementById('project_name');
+    const projectCodeInput = document.getElementById('project_code');
+    const consultantInput = document.getElementById('consultant');
+    const locationInput = document.getElementById('location');
+    const projectsTable = document.querySelector('.table');
+
+    function filterProjects() {
+        const projectName = projectNameInput.value.toLowerCase();
+        const projectCode = projectCodeInput.value.toLowerCase();
+        const consultant = consultantInput.value.toLowerCase();
+        const location = locationInput.value.toLowerCase();
+
+        document.querySelectorAll('.project-item').forEach(row => {
+            const nameMatch = row.cells[0].textContent.toLowerCase().includes(projectName);
+            const codeMatch = row.cells[1].textContent.toLowerCase().includes(projectCode);
+            const consultantMatch = row.cells[2].textContent.toLowerCase().includes(consultant);
+            const locationMatch = row.cells[3].textContent.toLowerCase().includes(location);
+            if (nameMatch && codeMatch && consultantMatch && locationMatch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    projectNameInput.addEventListener('input', filterProjects);
+    projectCodeInput.addEventListener('input', filterProjects);
+    consultantInput.addEventListener('input', filterProjects);
+    locationInput.addEventListener('input', filterProjects);
+});
+
+function searchProjects() {
+    var name = document.getElementById('project_name').value;
+    var code = document.getElementById('project_code').value;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', `{% url 'search-projects' %}?project_name=${name}&project_code=${code}`, true);
+    xhr.onload = function() {
+        if (this.status == 200) {
+            document.querySelector('.table').innerHTML = this.responseText;
+        }
+    }
+    xhr.send();
+}
+</script>
 
 {% endblock %}

@@ -22,6 +22,7 @@ from accounts.views import profile_view
 from .views import home  # Import the home view
 from django.conf import settings
 from django.conf.urls.static import static
+from orders.views import delete_order  # Import delete_order from orders.views
 
 urlpatterns = [
     path('', home, name='home'),  # Use the home view for the root URL

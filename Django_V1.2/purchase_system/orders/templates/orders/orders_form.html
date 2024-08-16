@@ -6,29 +6,30 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-    <h2>{{ form.instance.id|yesno:"Edit,Add New" }} Order</h2>
+    <h2>{{ form.instance.id|yesno:"Edit,Add New" }} Order </h2>
     <div class="container">
-        <form method="post" id="orderForm">
+        <form method="post" id="orderForm" action="{% if form.instance.id %}{% url 'order_review' order_id=form.instance.id %}{% else %}{% url 'order_create' %}{% endif %}">
             {% csrf_token %}
             {{ form.non_field_errors }}
+
             <div class="form-row">
-                <!-- First Row: Product Name, Product Code, Quantity, Order Name -->
-                <div class="form-col">{{ form.product_name.label_tag }}{{ form.product_name }}</div>
-                <div class="form-col">{{ form.product_code.label_tag }}{{ form.product_code }}</div>
-                <div class="form-col">{{ form.quantity.label_tag }}{{ form.quantity }}</div>
+
+                    <div class="form-col">
+                        <label>Requester:</label>
+                        <input type="text" value="{{ request.user.username }}" disabled>
+                    </div>
                 <div class="form-col">{{ form.order_name.label_tag }}{{ form.order_name }}</div>
+                <div class="form-col">{{ form.request_date.label_tag }}{{ form.request_date }}</div>
+                <div class="form-col">{{ form.supply_date.label_tag }}{{ form.supply_date }}</div>
             </div>
+
             <div class="form-row">
-                <!-- Second Row: Due to Date -->
-                <div class="form-col">{{ form.due_date.label_tag }}{{ form.due_date }}</div>
-            </div>
-            <div class="form-row">
-                <!-- Third Row: Project Name, Project Code, Project Consultant, Project Location -->
                 <div class="form-col">{{ form.project_name.label_tag }}{{ form.project_name }}</div>
                 <div class="form-col">{{ form.project_code.label_tag }}{{ form.project_code }}</div>
                 <div class="form-col">{{ form.project_consultant.label_tag }}{{ form.project_consultant }}</div>
                 <div class="form-col">{{ form.project_location.label_tag }}{{ form.project_location }}</div>
             </div>
+
             <div class="form-row">
                 <!-- Fourth Row: Project Phase -->
                 <div class="form-col">
@@ -41,52 +42,128 @@
                     </select>
                 </div>
             </div>
-            <div class="form-row">
-                <!-- Supplier -->
-                <div class="form-col">
-                    <label for="id_supplier">Supplier:</label>
-                    <input type="text" name="supplier" id="id_supplier" placeholder="Enter supplier name">
-                </div>
-            </div>
-            <button type="submit" class="btn btn-orange">Save</button>
+
+                <div class="form-row" style="margin-left: 42px;">
+                    <!-- First Row: Product Name, Product Code, Quantity, Order Name -->
+                    <div class="form-col">{{ form.product_name.label_tag }}<input type="text" id="id_product_name" name="product_name" class="dynamic-product-name"></div>
+                    <div class="form-col">{{ form.product_code.label_tag }}{{ form.product_code }}</div>
+                    <div class="form-col">{{ form.quantity.label_tag }}{{ form.quantity }}</div>
+                </div> 
+
+            <button type="submit" class="btn btn-orange">Submit</button>
            
         </form> <br>
         <a href="{% url 'order_list' %}" class="btn btn-red">Return to Order List</a>
     </div>
 
     <script>
-    $(function() {
-        function setupAutocomplete(elementId, otherElementId) {
-            $(elementId).autocomplete({
-                source: function(request, response) {
-                    console.log("Searching for:", request.term);
-                    $.ajax({
-                        url: "{% url 'product_search' %}",
-                        dataType: "json",
-                        data: {
-                            term: request.term,
-                            field: elementId === "#id_product_name" ? "name" : "code"
-                        },
-                        success: function(data) {
-                            console.log("Received data:", data);
-                            response(data);
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("Error:", error);
-                        }
-                    });
-                },
-                minLength: 2,
-                select: function(event, ui) {
-                    $("#id_product_name").val(ui.item.name);
-                    $("#id_product_code").val(ui.item.code);
-                    return false;
+        $(function() {
+            function setupAutocomplete(elementId, otherElementId) {
+                $(elementId).autocomplete({
+                    source: function(request, response) {
+                        console.log("Searching for:", request.term);
+                        $.ajax({
+                            url: "{% url 'product_search' %}",
+                            dataType: "json",
+                            data: {
+                                term: request.term,
+                                field: elementId === "#id_product_name" ? "name" : "code"
+                            },
+                            success: function(data) {
+                                console.log("Received data:", data);
+                                response(data);
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Error:", error);
+                            }
+                        });
+                    },
+                    minLength: 2,
+                    select: function(event, ui) {
+                        $("#id_product_name").val(ui.item.name);
+                        $("#id_product_code").val(ui.item.code);
+                        return false;
+                    }
+                });
+            }
+    
+            setupAutocomplete("#id_product_name", "#id_product_code");
+            setupAutocomplete("#id_product_code", "#id_product_name");
+        });
+        </script>
+
+
+    <script>
+        document.getElementById('orderForm').addEventListener('submit', function(event) {
+            // Prevent form submission if validation fails
+            let isValid = true;
+            const productNames = document.querySelectorAll('.dynamic-product-name');
+            const productCodes = document.querySelectorAll('.dynamic-product-code');
+            const quantities = document.querySelectorAll('.dynamic-product-quantity');
+
+            productNames.forEach((productName, index) => {
+                if (!productName.value.trim() || !productCodes[index].value.trim() || !quantities[index].value.trim()) {
+                    isValid = false; // Set isValid to false if any product name, code, or quantity is empty
+                    productName.closest('.form-row').style.backgroundColor = '#ffcccc'; // Highlight the row with missing information
+                    productCodes[index].closest('.form-row').style.backgroundColor = '#ffcccc'; // Highlight the row with missing information
+                    quantities[index].closest('.form-row').style.backgroundColor = '#ffcccc'; // Highlight the row with missing information
+                } else {
+                    productName.closest('.form-row').style.backgroundColor = ''; // Remove highlight if filled
+                    productCodes[index].closest('.form-row').style.backgroundColor = ''; // Remove highlight if filled
+                    quantities[index].closest('.form-row').style.backgroundColor = ''; // Remove highlight if filled
                 }
             });
-        }
 
-        setupAutocomplete("#id_product_name", "#id_product_code");
-        setupAutocomplete("#id_product_code", "#id_product_name");
-    });
+            if (!isValid) {
+                event.preventDefault(); // Stop form submission
+                alert('Both product name, code, and quantity are required for all products.');
+            }
+        });
     </script>
-{% endblock %}
+
+    <script>
+        $(function() {
+            function setupProjectAutocomplete() {
+                $("#id_project_name").autocomplete({
+                    source: function(request, response) {
+                        $.ajax({
+                            url: "{% url 'project_search' %}",
+                            dataType: "json",
+                            data: {
+                                term: request.term
+                            },
+                            success: function(data) {
+                                response($.map(data, function(item) {
+                                    return {
+                                        label: item.name + " (" + item.code + ") - " + 
+                                               (item.consultant ? item.consultant : 'No consultant') + ", " + 
+                                               (item.location ? item.location : 'No location'),
+                                        value: item.name,
+                                        id: item.id,
+                                        code: item.code,
+                                        consultant: item.consultant,
+                                        location: item.location
+                                    };
+                                }));
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Error fetching data:", error);
+                            }
+                        });
+                    },
+                    minLength: 2,
+                    select: function(event, ui) {
+                        $('#id_project_name').val(ui.item.value);
+                        $('#id_project_code').val(ui.item.code);
+                        $('#id_project_consultant').val(ui.item.consultant || 'No consultant');
+                        $('#id_project_location').val(ui.item.location || 'No location');
+                        return false;
+                    }
+                });
+            }
+
+            setupProjectAutocomplete();
+        });
+    </script>
+
+    {% endblock %}

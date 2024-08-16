@@ -1,0 +1,205 @@
+
+
+            <div class="form-row">
+                <div class="form-col">
+                    <label for="requesterName">Requester Name:</label>
+                    <input readonly type="text" id="requesterName" name="requester_name" value="{{ user.username }}">
+                </div>
+                <div class="form-col">{{ form.order_name.label_tag }}{{ form.order_name }}</div>
+                <div class="form-col">{{ form.request_date.label_tag }}{{ form.request_date }}</div>
+                <div class="form-col">{{ form.supply_date.label_tag }}{{ form.supply_date }}</div>
+            </div>
+
+            
+            <div class="form-row">
+                <!-- Third Row: Project Name, Project Code, Project Consultant, Project Location -->
+                <div class="form-col">{{ form.project_name.label_tag }}{{ form.project_name }}</div>
+                <div class="form-col">{{ form.project_code.label_tag }}{{ form.project_code }}</div>
+                <div class="form-col">{{ form.project_consultant.label_tag }}{{ form.project_consultant }}</div>
+                <div class="form-col">{{ form.project_location.label_tag }}{{ form.project_location }}</div>
+            </div>
+            <div class="form-row">
+                <!-- Fourth Row: Project Phase -->
+                <div class="form-col">
+                    {{ form.project_phase.label_tag }}
+                    <select name="{{ form.project_phase.name }}" id="{{ form.project_phase.id_for_label }}">
+                        <option value="">---</option>
+                        {% for num in range_1_to_10 %}
+                            <option value="{{ num }}" {% if form.project_phase.value|stringformat:"s" == num|stringformat:"s" %}selected{% endif %}>{{ num }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+
+            {% comment %} <div class="form-row" style="margin-left: 42px;">
+                <!-- First Row: Product Name, Product Code, Quantity, Order Name -->
+                <div class="form-col">{{ form.product_name.label_tag }}<input type="text" id="id_product_name" name="product_name" class="dynamic-product-name"></div>
+                <div class="form-col">{{ form.product_code.label_tag }}{{ form.product_code }}</div>
+                <div class="form-col">{{ form.quantity.label_tag }}{{ form.quantity }}</div>
+            </div> {% endcomment %}
+            {% comment %} here {% endcomment %}
+            <div id="additionalProducts">
+                <!-- Container for additional product fields -->
+                <div id="productButtons" style="display: distance-between; flex-direction: column; align-items: flex-start;">
+                    <button type="button" id="addProduct" class="btn btn-orange">Add product</button>
+                    <button type="button" id="removeSelectedProducts" class="btn btn-red" style="margin-top: 10px; display: none;">Remove Selected</button>
+                </div>
+            </div>
+            <br>
+            <br>
+
+            {{ form.order_code }}
+            {{ form.status }}
+            <button type="submit" class="btn btn-orange">Submit Order</button>
+           
+        </form> <br>
+        <a href="{% url 'order_list' %}" class="btn btn-red">Return to Order List</a>
+    </div>
+
+    <script>
+    $(function() {
+        function setupAutocomplete(elementId, otherElementId) {
+            $(elementId).autocomplete({
+                source: function(request, response) {
+                    console.log("Searching for:", request.term);
+                    $.ajax({
+                        url: "{% url 'product_search' %}",
+                        dataType: "json",
+                        data: {
+                            term: request.term,
+                            field: $(elementId).hasClass('dynamic-product-name') ? "name" : "code"
+                        },
+                        success: function(data) {
+                            console.log("Received data:", data);
+                            response(data);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error:", error);
+                        }
+                    });
+                },
+                select: function(event, ui) {
+                    $("#id_product_name").val(ui.item.name);
+                    $("#id_product_code").val(ui.item.code);
+                    return false;
+                }
+            });
+        }
+
+        setupAutocomplete("#id_product_name", "#id_product_code");
+        setupAutocomplete("#id_product_code", "#id_product_name");
+    });
+    </script>
+
+    <script>
+    document.getElementById('addProduct').addEventListener('click', function() {
+        const container = document.createElement('div');
+        container.className = 'form-row'; // Use the same class as the first row
+
+        // Generate a unique identifier for each row
+        const uniqueId = Date.now();
+
+        // Add a checkbox input for selecting the product row
+        container.innerHTML = `
+            <div>
+                <input type="checkbox" class="product-checkbox" id="checkbox_${uniqueId}">
+            </div>
+            <div class="form-col">
+                <label for="product_name_${uniqueId}">Product Name:</label>
+                <input type="text" id="product_name_${uniqueId}" name="product_name[]" class="dynamic-product-name">
+            </div>
+            <div class="form-col">
+                <label for="product_code_${uniqueId}">Product Code:</label>
+                <input type="text" id="product_code_${uniqueId}" name="product_code[]" class="dynamic-product-code">
+            </div>
+            <div class="form-col">
+                <label for="quantity_${uniqueId}">Quantity:</label>
+                <input type="number" name="quantity[]" value="">
+            </div>
+        `;
+        const additionalProducts = document.getElementById('additionalProducts');
+        additionalProducts.insertBefore(container, additionalProducts.children[0]); // Insert before the buttons
+
+        // Show the Remove Selected button when the first product is added
+        document.getElementById('removeSelectedProducts').style.display = 'inline-block';
+
+        setupAutocomplete(`#product_name_${uniqueId}`, `#product_code_${uniqueId}`);
+        setupAutocomplete(`#product_code_${uniqueId}`, `#product_name_${uniqueId}`);
+    });
+
+    document.getElementById('removeSelectedProducts').addEventListener('click', function() {
+        document.querySelectorAll('.product-checkbox:checked').forEach(checkbox => {
+            checkbox.closest('.form-row').remove();
+        });
+
+        // Hide the Remove Selected button if no more products are present
+        if (document.querySelectorAll('.product-checkbox').length === 0) {
+            document.getElementById('removeSelectedProducts').style.display = 'none';
+        }
+    });
+
+    function setupAutocomplete(elementId, otherElementId) {
+        $(elementId).autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    url: "{% url 'product_search' %}",
+                    dataType: "json",
+                    data: {
+                        term: request.term,
+                        field: $(elementId).hasClass('dynamic-product-name') ? "name" : "code"
+                    },
+                    success: function(data) {
+                        // Filter out already selected products
+                        const usedProducts = $(".dynamic-product-name, .dynamic-product-code").map(function() {
+                            return this.value;
+                        }).get();
+                        const filteredData = data.filter(item => !usedProducts.includes(item.name) && !usedProducts.includes(item.code));
+                        response(filteredData);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", error);
+                    }
+                });
+            },
+            select: function(event, ui) {
+                if ($(elementId).hasClass('dynamic-product-name')) {
+                    $(elementId).val(ui.item.name);
+                    $(otherElementId).val(ui.item.code);
+                } else {
+                    $(elementId).val(ui.item.code);
+                    $(otherElementId).val(ui.item.name);
+                }
+                return false;
+            }
+        });
+    }
+    </script>
+
+    <script>
+    $(document).ready(function() {
+        $.ajax({
+            url: '/path/to/product_data/',  // Update this URL to the path of your product_data view
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var productNameSelect = $('#id_product_name');
+                var productCodeSelect = $('#id_product_code');
+                data.forEach(function(item) {
+                    productNameSelect.append($('<option>', { 
+                        value: item.name,
+                        text : item.name 
+                    }));
+                    productCodeSelect.append($('<option>', { 
+                        value: item.code,
+                        text : item.code 
+                    }));
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching product data:", error);
+            }
+        });
+    });
+    </script>
+{% endblock %}

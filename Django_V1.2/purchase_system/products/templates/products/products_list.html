@@ -2,17 +2,29 @@
 {% block title %}Product List{% endblock %}
 
 
-{% block content %}    
+{% block content %}  
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> 
     <h2>Product List</h2>
     <div class="container">
-        <br>
-        <a href="{% url 'product_new' %}" class="btn btn-green">Add New Product</a>
+        <div style="margin: 20px 0; margin-bottom:10px 0;">
+            <a href="{% url 'product_new' %}" class="btn btn-green">Add New Product</a>
+        </div>
+
+
+        <form action="{% url 'product_import' %}" method="post" enctype="multipart/form-data" class="import-export-form">
+            {% csrf_token %}
+            <input type="file" name="product_file" class="file-input" required>
+            <button type="submit" class="btn btn-orange import-btn">Import Products</button>       
+            <a href="{% url 'product_export' %}" class="btn btn-white export-btn">Export Products</a>
+        </form>
+        
         <br>
         <br>
         <br>
         <!-- Search Form -->
         <div class="search-bar">
-            <form action="{% url 'product_search' %}" method="GET" style="display: flex; justify-content: space-between; align-items: center;">
+            <form action="javascript:void(0);" method="GET" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <label for="product_name">Product Name:</label>
                     <input type="text" id="product_name" name="product_name" placeholder="Search by Product Name" style="width: calc(100% - -100px); padding: 12px;" required>
@@ -25,11 +37,12 @@
                     <label for="supplier">Supplier:</label>
                     <input type="text" id="supplier" name="supplier" placeholder="Search by Supplier"  style="width: calc(100% - -100px); padding: 12px;" required>
                 </div>
-                <button type="submit" class="search-button" style="position: relative; top: 10.5px;">Search</button>
+                <button type="submit" class="btn btn-orange" style="position: relative; top: 10.5px;">Search</button>
             </form>
         </div>
         <br>
-        <table class="product-list">
+        <table class="table" style="margin: 30px 0;">
+        <thead style="margin: 5px;">
             <tr>
                 <th>Product Code</th>
                 <th>Product Name</th>
@@ -37,15 +50,54 @@
                 <th>Supplier</th>
                 <th>Action</th>
             </tr>
+        </thead>
+        <tbody style="margin: 5px;">
             {% for product in products %}
-            <tr class="product-item">
+            <tr class="product-item" {% if product.stock <= 10 %}style="color: red;"{% endif %}>
                 <td>{{ product.code }}</td>
                 <td>{{ product.name }}</td>
-                <td> {{ product.stock }}</td>
-                <td> {{ product.supplier }}</td>
+                <td>{{ product.stock }}</td>
+                <td>{{ product.supplier }}</td>
                 <td class="actions"><a href="{% url 'product_edit' id=product.id %}" class="btn btn-white">Edit</a></td>
             </tr>
             {% endfor %}
+        </tbody>
         </table>
     </div>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="modal-message modal-success" id="modal-message">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const productNameInput = document.getElementById('product_name');
+            const productCodeInput = document.getElementById('product_code');
+            const supplierInput = document.getElementById('supplier');
+            const productsTable = document.querySelector('.product-list');
+        
+            function filterProducts() {
+                const productName = productNameInput.value.toLowerCase();
+                const productCode = productCodeInput.value.toLowerCase();
+                const supplier = supplierInput.value.toLowerCase();
+        
+                document.querySelectorAll('.product-item').forEach(row => {
+                    const nameMatch = row.cells[1].textContent.toLowerCase().includes(productName);
+                    const codeMatch = row.cells[0].textContent.toLowerCase().includes(productCode);
+                    const supplierMatch = row.cells[3].textContent.toLowerCase().includes(supplier);
+                    if (nameMatch && codeMatch && supplierMatch) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        
+            productNameInput.addEventListener('input', filterProducts);
+            productCodeInput.addEventListener('input', filterProducts);
+            supplierInput.addEventListener('input', filterProducts);
+        });
+        </script>
 {% endblock %}

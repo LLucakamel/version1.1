@@ -1,0 +1,118 @@
+{% comment %} {% extends "base.html" %}
+{% block title %}Order Review{% endblock %}
+
+{% block content %}
+<style>
+
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        background-color: #e9e9e9; /* Slightly off-white for items */
+        border: 1px solid #d1d1d1; /* Light grey border */
+        border-radius: 0px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        flex: 1;
+        margin-right: 10px;
+    }
+
+    .info-item:last-child {
+        margin-right: 0;
+    }
+
+    .info-item strong {
+        color: #0056b3; /* Blue color for labels */
+        flex-basis: 30%;
+        font-weight: bold; /* Make labels bold */
+        text-align: left; /* Align text to the left within the space */
+    }
+
+    .info-item span {
+        flex-basis: 70%;
+        text-align: right; /* Center-align text within the span */
+        color: #000; /* Black color for content */
+        font-weight: normal; /* Set font weight to normal */
+        background-color: #f2f2f2; /* Light grey background for contrast */
+        padding: 5px; /* Add padding for better spacing */
+        border-radius: 4px; /* Rounded corners for aesthetic */
+        display: inline-block; /* Ensure the background and padding are applied correctly */
+        width: calc(100% - 10px); /* Adjust width to fit within parent, considering padding */
+        margin-left: 10px; /* Space between label and content */
+    }
+
+    .info-row {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+    }
+</style>
+<h2>Order Review</h2>
+<div class="container">
+
+    <div >
+        <div class="info-item"><strong>Requester Name</strong> <span>{{ user.username }}</span></div>
+        <div class="info-item"><strong>Order Name:</strong> <span>{{ order.order_name }}</span></div>
+        <div class="info-item"><strong>Request Date:</strong> <span>{{ order.request_date }}</span></div>
+        <div class="info-item"><strong>Supply Date:</strong> <span>{{ order.supply_date }}</span></div>
+<br>
+<br>
+        <div class="info-row">
+            <div class="info-item"><strong>Project Name:</strong> <span>{{ order.project_name }}</span></div>
+            <div class="info-item"><strong>Project Code:</strong> <span>{{ order.project_code }}</span></div>
+            <div class="info-item"><strong>Project Consultant:</strong> <span>{{ order.project_consultant }}</span></div>
+            <div class="info-item"><strong>Project Location:</strong> <span>{{ order.project_location }}</span></div>
+            <div class="info-item"><strong>Project Phase:</strong> <span>{{ order.project_phase }}</span></div>
+        </div>
+    </div>
+    <br>
+    <br>
+        <form>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>SR.NO.</th>
+                        <th>Item Code</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Pic</th>
+                        <th>Unit</th>
+                        <th>Remark</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in order.products %}
+                    <tr>
+                        <td>1</td>
+                        <td>{{ product.code }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.quantity }}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+        <br>
+    
+<div class="remark-div">
+</div>
+    
+</div>
+
+{% if order %}
+    <form action="{% url 'order_approve' order.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Approve</button>
+    </form>
+    <form action="{% url 'order_disapprove' order.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Disapprove</button>
+    </form>
+{% else %}
+    <p>Order not found or creation failed.</p>
+{% endif %}
+
+{% endblock %} {% endcomment %}
